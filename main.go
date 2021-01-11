@@ -4,25 +4,25 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/load"
 	"github.com/sensu-community/sensu-plugin-sdk/sensu"
 	"github.com/sensu/sensu-go/types"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/load"
 )
 
 // Config represents the check plugin config.
 type Config struct {
 	sensu.PluginConfig
-	WarningMultiplier float64
-	CriticalMultiplier float64
-	CountLogicalCPU bool
+	WarningMultiplier   float64
+	CriticalMultiplier  float64
+	CountLogicalCPU     bool
 	CompareAllIntervals bool
 }
 
 var (
 	nCPUPhysical int
-	nCPULogical int
-	plugin = Config{
+	nCPULogical  int
+	plugin       = Config{
 		PluginConfig: sensu.PluginConfig{
 			Name:     "check-load",
 			Short:    "Sensu Load Average Check",
@@ -31,7 +31,7 @@ var (
 	}
 
 	options = []*sensu.PluginConfigOption{
-		&sensu.PluginConfigOption{
+		{
 			Path:      "warning-multiplier",
 			Argument:  "warning-multiplier",
 			Shorthand: "w",
@@ -39,7 +39,7 @@ var (
 			Usage:     "The warning threshold multiplier (# CPUs x multiplier)",
 			Value:     &plugin.WarningMultiplier,
 		},
-		&sensu.PluginConfigOption{
+		{
 			Path:      "critical-multiplier",
 			Argument:  "critical-multiplier",
 			Shorthand: "c",
@@ -47,7 +47,7 @@ var (
 			Usage:     "The critical threshold multiplier (# CPUs x multiplier)",
 			Value:     &plugin.CriticalMultiplier,
 		},
-		&sensu.PluginConfigOption{
+		{
 			Path:      "count-logical-cpu",
 			Argument:  "count-logical-cpu",
 			Shorthand: "l",
@@ -55,7 +55,7 @@ var (
 			Usage:     "Include Logical CPUs (e.g. hyperthreading) in factoring thresholds",
 			Value:     &plugin.CountLogicalCPU,
 		},
-		&sensu.PluginConfigOption{
+		{
 			Path:      "compare-all-intervals",
 			Argument:  "compare-all-intervals",
 			Shorthand: "a",
@@ -69,6 +69,10 @@ var (
 func main() {
 	var err error
 	nCPUPhysical, err = cpu.Counts(false)
+	if err != nil {
+		fmt.Printf("%s CRITICAL: failed to get number of CPUs, error: %v\n", plugin.PluginConfig.Name, err)
+		os.Exit(sensu.CheckStateCritical)
+	}
 	nCPULogical, err = cpu.Counts(true)
 	if err != nil {
 		fmt.Printf("%s CRITICAL: failed to get number of CPUs, error: %v\n", plugin.PluginConfig.Name, err)
@@ -93,7 +97,7 @@ func checkArgs(event *types.Event) (int, error) {
 
 func executeCheck(event *types.Event) (int, error) {
 	var (
-		warningThreshold float64
+		warningThreshold  float64
 		criticalThreshold float64
 	)
 
