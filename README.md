@@ -82,6 +82,8 @@ metadata:
 spec:
   command: >-
     check-load
+    --warning-multiplier 2
+    --critical-multiplier 3
   subscriptions:
   - system
   runtime_assets:
